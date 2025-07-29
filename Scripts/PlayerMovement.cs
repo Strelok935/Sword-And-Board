@@ -347,6 +347,7 @@ public class PlayerMovement : MonoBehaviour
                 Vector3 slideDirection = Vector3.ProjectOnPlane(Vector3.down, hit.normal).normalized;
                 controller.Move(slideDirection * slideSpeed * Time.deltaTime);
                 isSliding = true;
+                isFalling = false; // Reset falling state when sliding.
             }
         }
     }
