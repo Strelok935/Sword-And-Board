@@ -38,7 +38,8 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask interactableLayer; // Layer for interactable objects
     private Camera playerCamera; // Reference to the player's camera
     private GameObject currentInteractable; // The currently hovered interactable object
-    
+
+
     [Header("Camera Bobbing")]
     public float bobFrequency = 6f;
     public float bobAmplitude = 0.05f;
@@ -55,7 +56,8 @@ public class PlayerMovement : MonoBehaviour
     private bool softLanding = false;
     private DamageZone currentDamageZone; 
 
-      [Header("Vault Settings")]
+
+    [Header("Vault Settings")]
     public float vaultUpDuration = 0.3f;
     public float vaultForwardDuration = 0.3f;
     public Vector3 vaultOffset = new Vector3(0, 2.0f, 3f); // Adjusted Y offset for higher clearance
@@ -151,12 +153,15 @@ public class PlayerMovement : MonoBehaviour
 
         // Interaction input (bound to F)
 
-       controls.Player.Interact.started += ctx => HandleInteraction(); // Trigger interaction instantly
-                
+        controls.Player.Interact.started += ctx => HandleInteraction(); // Trigger interaction instantly
+
         // Mouse lock bindings
         controls.Player.ToggleCursor.performed += ctx => HandleMouseLock();
         controls.Player.LockCursor.performed += ctx => HandleMouseLock();
-       
+        
+        // Inventory toggle
+        // controls.Player.ToggleInventory.performed += ctx => ToggleInventory();
+         
         }
 
     void OnEnable() => controls.Player.Enable();
@@ -187,8 +192,8 @@ public class PlayerMovement : MonoBehaviour
             HandleLook(); // Allow looking while on ladder
             return;
         }
-        
-        HandleMouseLock(); 
+
+        HandleMouseLock();
         HandleLook();
         HandleMovement();
         HandleGravityAndJump();
@@ -199,23 +204,28 @@ public class PlayerMovement : MonoBehaviour
         HandleLeaning();
 
         DetectInteractable();
-        
-    if (inDamageZone && currentDamageZone != null)
-    {
-        float damage = currentDamageZone.damagePerSecond * Time.deltaTime;
 
-        // Apply the damage to the player's health
-        if (playerStats != null)
+        if (inDamageZone && currentDamageZone != null)
         {
-            playerStats.TakeDamage(damage);
+            float damage = currentDamageZone.damagePerSecond * Time.deltaTime;
+
+            // Apply the damage to the player's health
+            if (playerStats != null)
+            {
+                playerStats.TakeDamage(damage);
+            }
+
+            Debug.Log($"Taking {damage} damage from {currentDamageZone.name}.");
         }
-
-        Debug.Log($"Taking {damage} damage from {currentDamageZone.name}.");
     }
-}
 
-// ---------------- Interaction ----------------
-        void DetectInteractable()
+    // ---------------- Item Pickup ----------------
+    void HandleItemPickup(Item item)
+    {
+        if (item == null) return;
+    }
+        // ---------------- Interaction ----------------
+    void DetectInteractable()
     {
         if (cameraTransform == null)
         {
@@ -225,23 +235,43 @@ public class PlayerMovement : MonoBehaviour
 
         // Perform a raycast from the camera's position
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactionRange, interactableLayer))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactionRange))
         {
-            // Store the interactable object
-            currentInteractable = hit.collider.gameObject;
+            // Check if the hit object is an item
+            Item item = hit.collider.GetComponent<Item>();
+            if (item != null)
+            {
+                currentInteractable = item.gameObject;
+                return;
+            }
+
+            // Check if the hit object is a door or lever
+            Door door = hit.collider.GetComponent<Door>();
+            Lever lever = hit.collider.GetComponent<Lever>();
+            if (door != null || lever != null)
+            {
+                currentInteractable = hit.collider.gameObject;
+                return;
+            }
         }
-        else
-        {
-            // Clear the interactable object if nothing is hit
-            currentInteractable = null;
-        }
+
+        // Clear the interactable object if nothing is hit
+        currentInteractable = null;
     }
 
     void HandleInteraction()
     {
         if (currentInteractable == null) return;
 
-        // Check if the interactable object has a Door component
+        // Check if the interactable object is an item
+        Item item = currentInteractable.GetComponent<Item>();
+        if (item != null)
+        {
+            HandleItemPickup(item); // Call the new method to handle item pickup
+            return;
+        }
+
+        // Check if the interactable object is a door
         Door door = currentInteractable.GetComponent<Door>();
         if (door != null)
         {
@@ -249,7 +279,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Check if the interactable object has a Lever component
+        // Check if the interactable object is a lever
         Lever lever = currentInteractable.GetComponent<Lever>();
         if (lever != null)
         {
@@ -257,7 +287,6 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
     }
-
     // ---------------- Look ----------------
     void HandleLook()
     {

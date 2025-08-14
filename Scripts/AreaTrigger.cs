@@ -2,7 +2,6 @@
 // This was created with the help of Assistant, a Unity Artificial Intelligence product.
 
 using System;
-using UnityEditor;
 using UnityEngine;
 
 public class AreaTrigger : MonoBehaviour
@@ -13,7 +12,10 @@ public class AreaTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player")) // Ensure the player has the "Player" tag
         {
-            SoundManager soundManager = FindObjectOfType<SoundManager>();
+            // Explicitly specify UnityEngine.Object to avoid ambiguity
+            UnityEngine.Object soundManagerObject = UnityEngine.Object.FindFirstObjectByType<SoundManager>();
+            SoundManager soundManager = soundManagerObject as SoundManager;
+
             if (soundManager != null)
             {
                 soundManager.PlayAreaMusic(areaMusic);
@@ -25,7 +27,10 @@ public class AreaTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player")) // When the player leaves the area
         {
-            SoundManager soundManager = FindObjectOfType<SoundManager>();
+            // Explicitly specify UnityEngine.Object to avoid ambiguity
+            UnityEngine.Object soundManagerObject = UnityEngine.Object.FindFirstObjectByType<SoundManager>();
+            SoundManager soundManager = soundManagerObject as SoundManager;
+
             if (soundManager != null)
             {
                 soundManager.PlayLevelMusic(); // Revert to level music
