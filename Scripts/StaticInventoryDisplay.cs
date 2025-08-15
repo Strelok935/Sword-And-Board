@@ -18,6 +18,7 @@ public class StaticInventoryDisplay : InventoryDisplay
         {
             inventorySystem = inventoryHolder.InventorySystem;
             inventorySystem.OnSlotChanged += UpdateSlot;
+            Debug.Log($"InventorySystem initialized with {inventorySystem.InventorySize} slots.");
 
         }
         else
@@ -28,9 +29,9 @@ public class StaticInventoryDisplay : InventoryDisplay
         AssignSlot(InventorySystem);
     }
 
-    public override void AssignSlot(InventorySystem invToDisplay)
+        public override void AssignSlot(InventorySystem invToDisplay)
     {
-        if(slots.Length != InventorySystem.InventorySize)
+        if (slots.Length != InventorySystem.InventorySize)
         {
             Debug.LogWarning($"Inventory size mismatch. Inventory Size: {invToDisplay.InventorySize}, Slot UIs assigned: {slots.Length}, on {this.gameObject}");
         }
@@ -38,8 +39,15 @@ public class StaticInventoryDisplay : InventoryDisplay
         slotUIMap = new Dictionary<InventorySlotUI, InventorySlot>();
         for (int i = 0; i < InventorySystem.InventorySize; i++)
         {
+            if (i >= slots.Length)
+            {
+                Debug.LogError($"Slot index {i} exceeds the number of assigned InventorySlotUI objects.");
+                continue;
+            }
+
             slotUIMap.Add(slots[i], InventorySystem.InventorySlots[i]);
             slots[i].Init(InventorySystem.InventorySlots[i]);
+            Debug.Log($"Assigned InventorySlot {i} to InventorySlotUI {slots[i].name}");
         }
     }
 }

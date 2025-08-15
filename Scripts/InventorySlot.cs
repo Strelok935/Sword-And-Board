@@ -5,13 +5,13 @@ using System.Collections;
 [System.Serializable]
 public class InventorySlot
 {
-    [SerializeField] private ItemData itemData;
+    [SerializeField] private InventoryItemData itemData;
     [SerializeField] private int stackSize;
 
-    public ItemData ItemData => itemData;
+    public InventoryItemData ItemData => itemData;
     public int StackSize => stackSize;
 
-    public InventorySlot(ItemData itemData, int stackSize)
+    public InventorySlot(InventoryItemData itemData, int stackSize)
     {
         this.itemData = itemData;
         this.stackSize = stackSize;
@@ -28,8 +28,8 @@ public class InventorySlot
         itemData = null;
         stackSize = -1;
     }
-    
-    public void UpdateInventorySlot(ItemData itemData, int stackSize)
+
+    public void UpdateInventorySlot(InventoryItemData itemData, int stackSize)
     {
         this.itemData = itemData;
         this.stackSize = stackSize;
@@ -76,5 +76,4 @@ public class InventorySlot
         }
         return true; // Successfully removed from stack
     }
-
 }

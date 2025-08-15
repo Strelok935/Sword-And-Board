@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    public ItemData itemData; // Reference to the ScriptableObject for this item
+    public InventoryItemData itemData; // Reference to the ScriptableObject for this item
     public int quantity = 1; // Quantity of the item
 
     public void OnPickup()

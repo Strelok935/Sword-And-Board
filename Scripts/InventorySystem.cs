@@ -21,33 +21,52 @@ public class InventorySystem
         }
     }
 
-    public bool AddToInventory(ItemData itemData, int amount = 1)
+    public bool AddToInventory(InventoryItemData itemToAdd, int amountToAdd)
     {
-        if (itemData == null || amount <= 0) return false;
-
-        // Check for existing stack
-        foreach (var slot in inventorySlots)
+        if (ContainsItem(itemToAdd, out List<InventorySlot> invSlot)) // Check Whether the item already exists
         {
-            if (slot.ItemData == itemData && slot.RoomLeftInStack(amount))
+            foreach (var slot in inventorySlots)
             {
-                slot.AddToStack(amount);
-                OnSlotChanged?.Invoke(slot);
+                if (slot.ItemData == itemToAdd && slot.RoomLeftInStack(amountToAdd))
+                {
+                    slot.AddToStack(amountToAdd);
+                    OnSlotChanged?.Invoke(slot);
+                    return true;
+                }
+            }
+
+            if (HasFreeSlot(out InventorySlot freeSlot)) // Gets the first free slot
+            {
+                freeSlot.UpdateInventorySlot(itemToAdd, amountToAdd);
+                OnSlotChanged?.Invoke(freeSlot);
                 return true;
             }
+
+            return false; // No free slot and no room in existing stacks
         }
 
-        // Find an empty slot or a slot with room
-        for (int i = 0; i < inventorySlots.Count; i++)
+        // If the item is not already in the inventory
+        if (HasFreeSlot(out InventorySlot newSlot))
         {
-            if (inventorySlots[i].ItemData == null || inventorySlots[i].RoomLeftInStack(amount))
-            {
-                inventorySlots[i] = new InventorySlot(itemData, amount);
-                OnSlotChanged?.Invoke(inventorySlots[i]);
-                return true;
-            }
+            newSlot.UpdateInventorySlot(itemToAdd, amountToAdd);
+            OnSlotChanged?.Invoke(newSlot);
+            return true;
         }
 
-        return false; // Inventory is full
+        return false; // No free slot available
+    }
+
+    public bool ContainsItem(InventoryItemData itemToAdd, out List<InventorySlot> invSlot)
+    {
+        invSlot = inventorySlots.Where(i => i.ItemData == itemToAdd).ToList();
+        return invSlot.Count > 1 ? true : false;
+
+    }
+
+    public bool HasFreeSlot(out InventorySlot freeSlot)
+    {
+        freeSlot = inventorySlots.FirstOrDefault(i => i.ItemData == null);
+        return freeSlot == null ? false : true;
     }
 
 }
