@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ItemInventoryData : ScriptableObject
 {
-    public int itemID; // Unique identifier for the item
+    public int itemID = -1; // Unique identifier for the item
     public string itemName; // Name of the item
     public Sprite icon; // Icon to display in the inventory
     public bool isStackable; // Can this item stack?
