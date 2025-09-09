@@ -319,40 +319,46 @@ public class PlayerMovement : MonoBehaviour
 
     
 
-  void HandleGravityAndJump()
-{
-    if (isOnLadder) return;
-
-    velocity.y += gravity * Time.deltaTime;
-
-    if ((controller.isGrounded || isSliding) && velocity.y < 0)
+    void HandleGravityAndJump()
     {
-        velocity.y = -2f;
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height / 2 + 0.1f);
+        
 
-        if (jumpQueued)
+        if (isGrounded)
         {
-            // Check stamina before jumping
-            if (playerStats != null && playerStats.currentStamina > 0)
+            if (velocity.y < 0)
             {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-                // Drain stamina for jumping
-                playerStats.UseStamina(15f); // Adjust the stamina cost for jumping
-            }
-            else
-            {
-                Debug.Log("Not enough stamina to jump.");
+                velocity.y = -2f;
             }
 
-            if (!BunnyHopEnabled) jumpQueued = false;
+            if (jumpQueued)
+            {
+                if (playerStats != null && playerStats.currentStamina > 0)
+                {
+                    velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                    playerStats.UseStamina(15f);
+                    Debug.Log("Jump executed");
+                }
+                else
+                {
+                    Debug.Log("Not enough stamina to jump.");
+                }
+
+                if (!BunnyHopEnabled) jumpQueued = false;
+            }
+        }
+        else
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
+
+        controller.Move(velocity * Time.deltaTime);
+
+        if (!isGrounded && !BunnyHopEnabled)
+        {
+            jumpQueued = false;
         }
     }
-
-    controller.Move(velocity * Time.deltaTime);
-
-    if (!controller.isGrounded && !BunnyHopEnabled)
-        jumpQueued = false;
-}
 
     void HandleWallSliding()
     {

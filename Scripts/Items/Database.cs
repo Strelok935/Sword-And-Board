@@ -41,12 +41,23 @@ public class Database : ScriptableObject
                 index++;
                 _itemDatabase.Add(itemToAdd);
             }
+
+#if UNITY_EDITOR
+            if(itemToAdd) EditorUtility.SetDirty(itemToAdd);
+#endif
         }
 
         foreach (var item in HasIDNotInRange)
         {
             _itemDatabase.Add(item);
+#if UNITY_EDITOR
+            if(item) EditorUtility.SetDirty(item);
+#endif
         }
+        
+#if UNITY_EDITOR
+        AssetDatabase.SaveAssets();
+#endif
     }
     
     public ItemInventoryData GetItemByID(int id)

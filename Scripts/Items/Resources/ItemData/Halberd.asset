@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fffb2ea7f0e1904889692fe8c0d7688, type: 3}
-  m_Name: Crate
-  m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemID: 0
-  itemName: Crate1
-  icon: {fileID: 21300000, guid: 7375bb642d390454bbcea32dd46b7565, type: 3}
-  isStackable: 1
-  maxStackSize: 2
-  Description: 
+  m_Name: Halberd
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
+  itemID: 1
+  itemName: Halberd
+  icon: {fileID: 21300000, guid: 20271b29b90b6a94da93d1707559457b, type: 3}
+  isStackable: 0
+  maxStackSize: 1
+  Description: A metal Halberd
   MoneyValue: 0
   ItemType: 
-  WorldModelPrefab: {fileID: 5107783973742625898, guid: 36cf61a0e634f2c44820c65d091a900b, type: 3}
+  WorldModelPrefab: {fileID: 8272613392689372493, guid: 19b8eb401a0bc30409185c5fe6705533, type: 3}

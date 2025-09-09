@@ -18,6 +18,7 @@ public class ItemInventoryData : ScriptableObject
     public int MoneyValue; // Value of the item in game currency
 
     public string ItemType; // Type of the item (e.g., Weapon, Armor, Consumable)
+    public GameObject WorldModelPrefab; // Prefab to represent the item in the world
 
 
 

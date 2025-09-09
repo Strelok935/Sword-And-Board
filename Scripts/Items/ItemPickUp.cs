@@ -9,6 +9,8 @@ public class ItemPickUp : MonoBehaviour
     public float PickUpRange = 2f; // Range within which the item can be picked up
     public ItemInventoryData itemData;
 
+    [SerializeField] private float _rotationSpeed = 0f; // Speed of rotation
+
     private SphereCollider sphereCollider;
 
     [SerializeField] private ItemPickUpSaveData itemSaveData;
@@ -29,6 +31,11 @@ public class ItemPickUp : MonoBehaviour
     void Start()
     {
         SaveGameManager.data.activeItems.Add(id, itemSaveData);
+    }
+
+    private void Update()
+    {
+        transform.Rotate(Vector3.up, _rotationSpeed * Time.deltaTime);
     }
 
     private void LoadItemData(SaveData data)

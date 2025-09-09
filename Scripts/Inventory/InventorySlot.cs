@@ -1,11 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System;
+using System.Runtime.Serialization;
 
 [System.Serializable]
-public class InventorySlot
+public class InventorySlot : ISerializationCallbackReceiver
 {
-    [SerializeField] public ItemInventoryData itemData; // The data for the item in this slot
+    [NonSerialized] public ItemInventoryData itemData; // The data for the item in this slot
+    [SerializeField] private int _itemID = -1; // Item ID for serialization
     [SerializeField] private int stackSize; // stack size
 
     public ItemInventoryData ItemData => itemData;
@@ -14,6 +17,7 @@ public class InventorySlot
     public InventorySlot(ItemInventoryData itemData, int stackSize) // Constructor for creating a new inventory slot
     {
         this.itemData = itemData;
+        _itemID = itemData.itemID;
         this.stackSize = stackSize;
 
     }
@@ -26,6 +30,7 @@ public class InventorySlot
     public void ClearSlot()
     {
         itemData = null;
+        _itemID = -1;
         stackSize = -1;
     }
 
@@ -35,6 +40,7 @@ public class InventorySlot
         else // Different item
         {
             itemData = invSlot.itemData;
+            _itemID = itemData.itemID;
             stackSize = 0;
             AddToStack(invSlot.stackSize);
         }
@@ -43,6 +49,7 @@ public class InventorySlot
     public void UpdateInventorySlot(ItemInventoryData itemData, int stackSize) // Update the inventory slot with new item data and stack size
     {
         this.itemData = itemData;
+        _itemID = itemData.itemID;
         this.stackSize = stackSize;
     }
 
@@ -101,5 +108,20 @@ public class InventorySlot
         RemoveFromStack(halfStack);
         splitStack = new InventorySlot(itemData, halfStack);
         return true; // Successfully split the stack
+    }
+
+    public void OnBeforeSerialize()
+    {
+       // Implement if needed
+
+    }
+
+    public void OnAfterDeserialize()
+    {
+
+        if (_itemID == -1) return;
+
+        var database = Resources.Load<Database>("Database");
+        itemData = database.GetItemByID(_itemID);
     }
 }
