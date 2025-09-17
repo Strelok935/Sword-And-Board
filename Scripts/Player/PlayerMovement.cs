@@ -98,8 +98,14 @@ public class PlayerMovement : MonoBehaviour
     private float targetLean = 0f; // Target lean angle
 
 
+    [Header("Leaning Camera Offset")]
+    public Vector3 leanCameraOffset = new Vector3(0.3f, 0f, 0f); // Offset applied to the camera when leaning
+
+
+
     // Input & Movement
     private CharacterController controller;
+    private CapsuleCollider capsuleCollider;
     private PlayerControls controls;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -173,9 +179,10 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         targetHeight = standHeight;
         controller.height = standHeight;
-        controller.center = new Vector3(0, standHeight / 2f, 0);
+        controller.center = new Vector3(0, controller.height / 2f, 0);
         cameraTransform.localPosition = standingCamPos;
         playerStats = GetComponent<PlayerStats>();
         playerCamera = Camera.main;
@@ -184,7 +191,8 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.LogError("Interactor component is missing from the player GameObject.");
         }
-         //LockCursor();
+        //LockCursor();
+        controller.detectCollisions = false; // Disable built-in collision detection
     }
 
     void Update()
@@ -326,9 +334,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (isGrounded)
         {
-            if (velocity.y < 0)
+            if (controller.isGrounded && velocity.y < 0)
             {
-                velocity.y = -2f;
+                velocity.y = 0f;
+                jumpQueued = false;
+                
             }
 
             if (jumpQueued)
@@ -416,6 +426,7 @@ public class PlayerMovement : MonoBehaviour
     // ---------------- Leaning ----------------
 
 
+      
     void HandleLeaning()
     {
         // Smoothly interpolate the current lean angle to the target lean angle
@@ -424,11 +435,19 @@ public class PlayerMovement : MonoBehaviour
         // Apply the lean rotation to the camera
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, currentLean);
 
-        // Move the camera sideways based on the lean angle
-        float leanOffset = Mathf.Lerp(0f, targetLean > 0 ? -0.3f : 0.3f, Mathf.Abs(currentLean) / leanAngle);
-        cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, new Vector3(leanOffset, cameraTransform.localPosition.y, cameraTransform.localPosition.z), Time.deltaTime * leanSpeed);
+        // Calculate the camera's offset based on the lean direction
+        Vector3 offset = Vector3.zero; // Default offset is zero (no leaning)
+        if (Mathf.Abs(targetLean) > 0.01f) // Only apply offset if leaning
+        {
+            offset = targetLean > 0 ? leanCameraOffset : -leanCameraOffset;
+        }
+
+        // Apply the offset to the camera's position
+        Vector3 targetCamPos = (isCrouching ? crouchingCamPos : standingCamPos) + offset;
+        cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, targetCamPos, Time.deltaTime * leanSpeed);
     }
-    // ---------------- Vault ----------------
+
+// ---------------- Vault ----------------
    void StartVault(Vector3 vaultPoint)
 {
     if (playerStats != null && playerStats.currentStamina <= 0)
@@ -475,11 +494,12 @@ public class PlayerMovement : MonoBehaviour
                 float t = Mathf.Clamp01(vaultTimer / vaultForwardDuration);
                 transform.position = Vector3.Lerp(vaultUpTarget, vaultForwardTarget, t);
 
-                if (t >= 1f)
-                {
-                    isVaulting = false;
-                    controller.enabled = true;
-                    vaultPhase = VaultPhase.None;
+            if (t >= 1f)
+            {
+                isVaulting = false;
+                controller.enabled = true;
+                vaultPhase = VaultPhase.None;
+                controller.transform.position = transform.position;
                 }
             }
         }
@@ -505,13 +525,20 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // ---------------- Crouch ----------------
-    void HandleCrouch()
+        void HandleCrouch()
     {
         controller.height = Mathf.Lerp(controller.height, targetHeight, Time.deltaTime * crouchTransitionSpeed);
         controller.center = new Vector3(0, controller.height / 2f, 0);
 
         Vector3 targetCamPos = isCrouching ? crouchingCamPos : standingCamPos;
         cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, targetCamPos, Time.deltaTime * crouchTransitionSpeed);
+
+        // Reset height and center when standing
+        if (controller.isGrounded && !isCrouching)
+        {
+            controller.height = standHeight;
+            controller.center = new Vector3(0, standHeight / 2f, 0);
+        }
     }
 
     void ToggleCrouch()

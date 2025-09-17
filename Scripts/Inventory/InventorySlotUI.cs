@@ -66,7 +66,8 @@ public class InventorySlotUI : MonoBehaviour
         itemCountText.text = string.Empty;
     }
 
-    private void OnUiSlotClick() // Handle UI slot click events
+    
+      private void OnUiSlotClick() // Handle UI slot click events
     {
         ParentDisplay?.SlotClicked(this);
     }

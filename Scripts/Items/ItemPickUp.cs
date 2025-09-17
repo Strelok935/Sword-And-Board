@@ -1,36 +1,33 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SphereCollider))]
 [RequireComponent(typeof(IdSystem))]
-public class ItemPickUp : MonoBehaviour
+public class ItemPickUp : MonoBehaviour, IInteractable
 {
-    public float PickUpRange = 2f; // Range within which the item can be picked up
+    public float PickUpRange = 2f; // Range within which the item can be interacted with
     public ItemInventoryData itemData;
 
     [SerializeField] private float _rotationSpeed = 0f; // Speed of rotation
 
     private SphereCollider sphereCollider;
+    public UnityAction<IInteractable> OnInteract { get; set; } // Correctly implemented property
 
-    [SerializeField] private ItemPickUpSaveData itemSaveData;
     private string id;
 
     private void Awake()
     {
         id = GetComponent<IdSystem>().Id;
         SaveLoad.OnLoadGame += LoadItemData;
-        itemSaveData = new ItemPickUpSaveData(itemData, transform.position, transform.rotation);
 
         sphereCollider = GetComponent<SphereCollider>();
         sphereCollider.isTrigger = true;
         sphereCollider.radius = PickUpRange;
-    }
 
-
-    void Start()
-    {
-        SaveGameManager.data.activeItems.Add(id, itemSaveData);
+        SaveGameManager.data.activeItems.Add(id, new ItemPickUpSaveData(itemData, transform.position, transform.rotation));
     }
 
     private void Update()
@@ -56,17 +53,22 @@ public class ItemPickUp : MonoBehaviour
         SaveLoad.OnLoadGame -= LoadItemData;
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void Interact(Interactor interactor, out bool success)
     {
-        var inventory = other.transform.GetComponent<PlayerInventory>();
-        if (!inventory) return;
+        success = false;
 
-        if (inventory.AddToInventory(itemData, 1))
+        var inventory = interactor.GetComponent<PlayerInventory>();
+        if (inventory != null && inventory.AddToInventory(itemData, 1))
         {
             SaveGameManager.data.collectedItems.Add(id);
-            // Optionally, you can destroy the item after picking it up
+            success = true;
             Destroy(gameObject);
         }
+    }
+
+    public void StopInteract()
+    {
+        // No specific behavior needed for stopping interaction in this case
     }
 }
 

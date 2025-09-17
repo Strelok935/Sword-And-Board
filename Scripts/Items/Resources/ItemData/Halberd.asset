@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
   itemID: 1
   itemName: Halberd
+  isEquippable: 1
+  isUniversal: 0
   icon: {fileID: 21300000, guid: 20271b29b90b6a94da93d1707559457b, type: 3}
-  isStackable: 0
+  isStackable: 1
   maxStackSize: 1
   Description: A metal Halberd
-  MoneyValue: 0
+  MoneyValue: 150
   ItemType: 
   WorldModelPrefab: {fileID: 8272613392689372493, guid: 19b8eb401a0bc30409185c5fe6705533, type: 3}

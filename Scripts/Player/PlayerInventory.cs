@@ -11,10 +11,13 @@ public class PlayerInventory : InventoryHolder
     
     public static UnityAction<InventorySystem, int> OnPlayerInventoryDisplayRequested;
 
+
     public void Start()
     {
         SaveGameManager.data.playerInventory = new SaveDataInventory(primaryInventorySystem);
+
     }
+ 
 
 
     protected override void LoadInventory(SaveData data)
