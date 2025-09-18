@@ -5,6 +5,7 @@ using System.Collections;
 public class DynamicEquipmentDisplay : InventoryDisplay
 {
     [SerializeField] private InventorySlotUI slotUIPrefab; // Prefab for equipment slots
+    [SerializeField] private List<Vector2> slotPositions; // List of predefined positions for the slots
     private EquipmentSystem equipmentSystem; // Reference to the equipment system
     private Dictionary<InventorySlotUI, InventorySlot> slotUIMap; // Map of UI slots to equipment slots
 
@@ -52,9 +53,22 @@ public class DynamicEquipmentDisplay : InventoryDisplay
         ClearSlots();
 
         slotUIMap = new Dictionary<InventorySlotUI, InventorySlot>();
+
         for (int i = 0; i < equipmentSystem.EquipmentSize; i++)
         {
             var slotUI = Instantiate(slotUIPrefab, transform);
+
+            // Assign the predefined position if available
+            if (i < slotPositions.Count)
+            {
+                RectTransform slotRect = slotUI.GetComponent<RectTransform>();
+                slotRect.anchoredPosition = slotPositions[i];
+            }
+            else
+            {
+                Debug.LogWarning($"No predefined position for slot {i}. Defaulting to (0, 0).");
+            }
+
             slotUIMap.Add(slotUI, equipmentSystem.EquipmentSlots[i]);
             slotUI.Init(equipmentSystem.EquipmentSlots[i]);
         }
