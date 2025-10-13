@@ -7,7 +7,7 @@ public class DynamicEquipmentDisplay : InventoryDisplay
     [SerializeField] private InventorySlotUI slotUIPrefab; // Prefab for equipment slots
     [SerializeField] private List<Vector2> slotPositions; // List of predefined positions for the slots
     private EquipmentSystem equipmentSystem; // Reference to the equipment system
-    private Dictionary<InventorySlotUI, InventorySlot> slotUIMap; // Map of UI slots to equipment slots
+    private new Dictionary<InventorySlotUI, InventorySlot> slotUIMap; // Map of UI slots to equipment slots
 
     public void Initialize(EquipmentSystem equipmentSystem)
     {

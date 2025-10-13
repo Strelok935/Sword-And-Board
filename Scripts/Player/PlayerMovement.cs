@@ -192,7 +192,7 @@ public class PlayerMovement : MonoBehaviour
             Debug.LogError("Interactor component is missing from the player GameObject.");
         }
         //LockCursor();
-        controller.detectCollisions = false; // Disable built-in collision detection
+     
     }
 
     void Update()
