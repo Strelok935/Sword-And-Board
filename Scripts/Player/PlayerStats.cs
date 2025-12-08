@@ -1,6 +1,3 @@
-// 7/9/2025 AI-Tag
-// This was created with the help of Assistant, a Unity Artificial Intelligence product.
-
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -97,7 +94,7 @@ public class PlayerStats : MonoBehaviour
         // Drop the camera to the player's feet
         if (cameraTransform != null)
         {
-            cameraTransform.localPosition = new Vector3(0, 0, 0); // Adjust as needed
+            cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, new Vector3(0, 0.5f, 0), 1f);
             cameraTransform.localRotation = Quaternion.Euler(90, 0, 0); // Look down
         }
     }

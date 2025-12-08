@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: DefaultShop
   m_EditorClassIdentifier: Assembly-CSharp::ShopItems
   _items:
-  - ItemData: {fileID: 11400000, guid: 4be7ddae6a5ada04cb38f56c3b65ccf4, type: 2}
-    quantity: 5
+  - ItemData: {fileID: 11400000, guid: fe5b9c3b10b3d2e4882358aa43e455e8, type: 2}
+    quantity: 10
   _traderGold: 10000
   _markupSell: 0.25
   _markupBuy: 0.5

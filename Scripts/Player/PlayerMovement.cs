@@ -21,6 +21,12 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Jump Settings")]
     public bool BunnyHopEnabled = false;
+    public bool canJump = true; // Tracks if the player can jump
+
+    public void SetJumpEnabled(bool enabled)
+    {
+        canJump = enabled;
+    }
 
     [Header("Camera Settings")]
     public Transform cameraTransform;
@@ -113,6 +119,7 @@ public class PlayerMovement : MonoBehaviour
     private float xRotation = 0f;
     private bool isSprinting = false;
     private bool jumpQueued = false;
+    public ActiveWeapon activeWeapon;
 
     private PlayerStats playerStats;
 
@@ -164,13 +171,17 @@ public class PlayerMovement : MonoBehaviour
 
         controls.Player.Interact.started += ctx => HandleInteraction(); // Trigger interaction instantly
 
+        controls.Player.Attack.performed += ctx => HandleAttack();
+
         // Mouse lock bindings
         //controls.Player.ToggleCursor.performed += ctx => HandleMouseLock();
         //controls.Player.LockCursor.performed += ctx => HandleMouseLock();
-        
+
         // Inventory toggle
         // controls.Player.ToggleInventory.performed += ctx => ToggleInventory();
-         
+
+        
+
         }
 
     void OnEnable() => controls.Player.Enable();
@@ -210,7 +221,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-       // HandleMouseLock();
+        // HandleMouseLock();
         HandleLook();
         HandleMovement();
         HandleGravityAndJump();
@@ -219,6 +230,7 @@ public class PlayerMovement : MonoBehaviour
         HandleFallDamage();
         HandleCameraBobbing();
         HandleLeaning();
+        
 
         DetectInteractable();
 
@@ -241,8 +253,22 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     
-        // ---------------- Interaction ----------------
-   void DetectInteractable()
+    //----------------- Attack ---------------------
+
+        void HandleAttack()
+    {
+        if (activeWeapon != null)
+        {
+        activeWeapon.HandleShoot(); // Call the shooting method from ActiveWeapon
+        }
+        else
+        {
+        Debug.LogWarning("ActiveWeapon component is not assigned to PlayerMovement.");
+        }
+    }
+
+    // ---------------- Interaction ----------------
+    void DetectInteractable()
     {
         if (playerCamera == null)
         {
@@ -266,6 +292,8 @@ public class PlayerMovement : MonoBehaviour
         // Clear the interactable object if nothing is hit
         currentInteractable = null;
     }
+
+    
 
     void HandleInteraction()
     {
@@ -332,7 +360,7 @@ public class PlayerMovement : MonoBehaviour
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height / 2 + 0.1f);
         
 
-        if (isGrounded)
+        if (isGrounded && canJump)
         {
             if (controller.isGrounded && velocity.y < 0)
             {

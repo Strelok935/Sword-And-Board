@@ -1,8 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor; // Required for Handles (only works in the Editor)
 
 public class Movers : MonoBehaviour
 {
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
+
     [Header("Movement Settings")]
     public Vector3 targetPosition; // Target position to move the platform
     public float speed = 2f; // Speed of movement
@@ -31,6 +35,17 @@ public class Movers : MonoBehaviour
     [Header("Gizmo Settings")]
     public Vector3 gizmoOffset = Vector3.zero; // Offset for the Gizmos
 
+    [Header("Delay")]
+    public int delayTime = 0; // Delay before activation
+    private bool isWaitingForDelay = false; // Tracks if the delay is active
+
+    private CharacterController playerController;
+    private Vector3 previousPosition;
+
+    [Header("Audio Settings")]
+    public bool hasAudio = false; // Enable or disable audio
+    public AudioSource audioSource; // Reference to the AudioSource component
+
     private void Start()
     {
         startPosition = transform.position;
@@ -51,14 +66,22 @@ public class Movers : MonoBehaviour
                 Debug.LogWarning($"Activator '{activator.name}' does not have a Collider. Interaction may not work as expected.");
             }
         }
+
+        previousPosition = transform.position; // Initialize previous position
     }
 
     public void ToggleMovement()
     {
         if (!isTriggered && targetPosition != Vector3.zero) // Prevent re-triggering and ensure targetPosition is valid
         {
-            isTriggered = true; // Allow movement
-            hasReachedDestination = false; // Reset destination flag to allow movement
+            if (delayTime > 0)
+            {
+                StartCoroutine(DelayedActivation());
+            }
+            else
+            {
+                ActivateMovement();
+            }
         }
         else if (targetPosition == Vector3.zero)
         {
@@ -66,15 +89,35 @@ public class Movers : MonoBehaviour
         }
     }
 
+    private void ActivateMovement()
+    {
+        isTriggered = true; // Allow movement
+        hasReachedDestination = false; // Reset destination flag to allow movement
+
+        // Start playing audio if enabled
+        if (hasAudio && audioSource != null && !audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+    }
+
+    private System.Collections.IEnumerator DelayedActivation()
+    {
+        isWaitingForDelay = true;
+        yield return new WaitForSeconds(delayTime); // Wait for the specified delay time
+        isWaitingForDelay = false;
+        ActivateMovement();
+    }
+
     private void Update()
     {
-        if (isTriggered)
+        if (isTriggered && !isWaitingForDelay)
         {
             MoveAndRotateObject();
         }
     }
 
-        private void MoveAndRotateObject()
+    private void MoveAndRotateObject()
     {
         // Determine the target position
         Vector3 targetPos = movingToTarget ? startPosition + targetPosition : startPosition;
@@ -85,7 +128,19 @@ public class Movers : MonoBehaviour
         if (restrictZ) targetPos.z = transform.position.z;
 
         // Move the platform towards the target position
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+        Vector3 currentPosition = transform.position;
+        transform.position = Vector3.MoveTowards(currentPosition, targetPos, speed * Time.deltaTime);
+
+        // Calculate the movement delta
+        Vector3 movementDelta = transform.position - previousPosition;
+
+        // Move the player along with the elevator
+        if (playerController != null)
+        {
+            playerController.Move(movementDelta);
+        }
+
+        previousPosition = transform.position; // Update previous position
 
         // Handle rotation only if enabled
         if (enableRotation)
@@ -127,6 +182,12 @@ public class Movers : MonoBehaviour
             hasReachedDestination = true; // Mark as complete
             isTriggered = false; // Stop movement and rotation
 
+            // Stop audio if enabled
+            if (hasAudio && audioSource != null && audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+
             // Toggle the movement direction for the next activation
             movingToTarget = !movingToTarget;
         }
@@ -135,6 +196,34 @@ public class Movers : MonoBehaviour
     public bool HasReachedDestination()
     {
         return hasReachedDestination;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerController = other.GetComponent<CharacterController>();
+            playerMovement = other.GetComponent<PlayerMovement>();
+
+            if (playerMovement != null)
+            {
+                playerMovement.SetJumpEnabled(false); // Disable jumping
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerController = null;
+
+            if (playerMovement != null)
+            {
+                playerMovement.SetJumpEnabled(true); // Re-enable jumping
+                playerMovement = null; // Clear reference
+            }
+        }
     }
 
     private void OnDrawGizmos()

@@ -1,6 +1,3 @@
-// 7/16/2025 AI-Tag
-// This was created with the help of Assistant, a Unity Artificial Intelligence product.
-
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +11,8 @@ public class PlayerHUD : MonoBehaviour
     public Image staminaBarFill; // Reference to the StaminaBar fill image
     public TMP_Text healthText; // Reference to the Health Text (TextMeshPro)
     public TMP_Text staminaText; // Reference to the Stamina Text (TextMeshPro)
+    public TMP_Text goldText; // Reference to the Gold Text (TextMeshPro)
+    public PlayerInventory playerInventory; // Reference to the PlayerInventory script
 
     void Start()
     {
@@ -23,6 +22,7 @@ public class PlayerHUD : MonoBehaviour
             UpdateHealthBar();
             UpdateStaminaBar();
             UpdateText();
+           
         }
     }
 
@@ -68,6 +68,11 @@ public class PlayerHUD : MonoBehaviour
         if (staminaText != null)
         {
             staminaText.text = $"{playerStats.currentStamina}/{playerStats.maxStamina}";
+        }
+        
+        if (goldText != null)
+        {
+            goldText.text = playerInventory.GetGold().ToString();
         }
     }
 }

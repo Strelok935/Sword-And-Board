@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fffb2ea7f0e1904889692fe8c0d7688, type: 3}
+  m_Name: MusketBalls
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventoryData
+  itemID: 2
+  itemName: Musket Balls
+  isEquippable: 0
+  isUniversal: 0
+  icon: {fileID: 21300000, guid: 536693d16e035054d9a6ba62890d2b02, type: 3}
+  isStackable: 1
+  maxStackSize: 64
+  Description: 'Small pouch, containing 5 iron balls and some gunpownder, can be
+    used by any type of Arquebus. '
+  MoneyValue: 25
+  ItemType: Ammo
+  WorldModelPrefab: {fileID: 0}

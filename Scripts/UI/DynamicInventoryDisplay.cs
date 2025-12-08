@@ -7,10 +7,10 @@ public class DynamicInventoryDisplay : InventoryDisplay
     [SerializeField] protected InventorySlotUI slotUIPrefab;
     protected override void Start() // Initialize the inventory display
     {
-        // InventoryHolder.OnDynamicInventoryDisplayRequested += RefreshDynamicInventoryDisplay;
+        InventoryHolder.OnDynamicInventoryDisplayRequested += RefreshDynamicInventoryDisplay;
         base.Start();
 
-        // AssignSlot(inventorySystem);
+       
     }
 
     protected void OnDestroy()

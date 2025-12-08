@@ -50,4 +50,9 @@ public class PlayerInventory : InventoryHolder
         return false;
     }
 
+    public int GetGold()
+    {
+        return _gold;
+    }
+
 }
