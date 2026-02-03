@@ -38,6 +38,7 @@ public class Enemy : MonoBehaviour
     {
         currentState = EnemyState.Idle;
         animator.SetBool("Spotted", false); // Ensure the Spotted parameter is set to false initially
+        HandleStateAudio(currentState);
     }
 
     protected virtual void Update()
