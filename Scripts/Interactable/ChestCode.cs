@@ -18,9 +18,10 @@ public class ChestCode : InventoryHolder, IInteractable
 
     private void Start()
     {
-        var chestSaveData = new SaveDataInventory(primaryInventorySystem, transform.position, transform.rotation);
+        if (SaveGameManager.IsLoadingGame) return;
 
-        SaveGameManager.data.chestDictionary.Add(GetComponent<IdSystem>().Id, chestSaveData);
+        var chestSaveData = new SaveDataInventory(primaryInventorySystem, transform.position, transform.rotation);
+        SaveGameManager.data.chestDictionary[GetComponent<IdSystem>().Id] = chestSaveData;
     }
 
     protected override void LoadInventory(SaveData data)

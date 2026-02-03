@@ -1,90 +1,141 @@
-// 12/5/2025 AI-Tag
-// This was created with the help of Assistant, a Unity Artificial Intelligence product.
-
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
 public class WeaponSwitchingSystem : MonoBehaviour
 {
-    [SerializeField] private List<WeaponBaseSO> availableWeapons; // List of available weapons
-    [SerializeField] private ActiveWeapon activeWeapon; // Reference to the ActiveWeapon script
-    [SerializeField] private GameObject modelArquebus; // Reference to the Arquebus model GameObject
-    [SerializeField] private GameObject modelSword; // Reference to the Sword model GameObject
+[SerializeField] private List<WeaponBaseSO> availableWeapons; // List of available weapons
+[SerializeField] private ActiveWeapon activeWeapon; // Reference to the ActiveWeapon script
+[SerializeField] private GameObject modelArquebus; // Reference to the Arquebus model GameObject
+[SerializeField] private GameObject modelSword; // Reference to the Sword model GameObject
 
-    private int currentWeaponIndex = 0; // Index of the currently selected weapon
-    private PlayerControls playerControls; // Reference to the PlayerControls input action asset
-    private InputAction switchWeaponAction; // Input action for the Z key
+private int currentWeaponIndex = 0; // Index of the currently selected weapon
+private PlayerControls playerControls; // Reference to the PlayerControls input action asset
+private InputAction switchWeaponAction; // Input action for the Z key
 
-    private void Awake()
-    {
-        // Initialize the PlayerControls input action asset
-        playerControls = new PlayerControls();
-        switchWeaponAction = playerControls.Player.SwitchWeapon; // Assuming "SwitchWeapon" is bound to the Z key
-    }
+private void Awake()
+{
+// Initialize the PlayerControls input action asset
+playerControls = new PlayerControls();
+switchWeaponAction = playerControls.Player.SwitchWeapon; // Assuming "SwitchWeapon" is bound to the Z key
 
-    private void OnEnable()
-    {
-        // Enable the input system
-        playerControls.Enable();
+// Validate references
+if (activeWeapon == null)
+{
+Debug.LogError("ActiveWeapon script is not assigned!");
+}
 
-        // Subscribe to the SwitchWeapon action
-        switchWeaponAction.performed += OnSwitchWeapon;
-    }
+if (modelArquebus == null || modelSword == null)
+{
+Debug.LogError("Weapon models are not assigned!");
+}
 
-    private void OnDisable()
-    {
-        // Unsubscribe from the SwitchWeapon action
-        switchWeaponAction.performed -= OnSwitchWeapon;
+if (availableWeapons == null || availableWeapons.Count == 0)
+{
+Debug.LogError("AvailableWeapons list is empty or not assigned!");
+}
+}
 
-        // Disable the input system
-        playerControls.Disable();
-    }
+private void OnEnable()
+{
+// Enable the input system
+playerControls.Enable();
 
-    private void OnSwitchWeapon(InputAction.CallbackContext context)
-    {
-        // Switch to the next weapon
-        SwitchToNextWeapon();
-    }
+// Subscribe to the SwitchWeapon action
+switchWeaponAction.performed += OnSwitchWeapon;
+}
 
-    private void SwitchToNextWeapon()
-    {
-        // Increment the weapon index and wrap around if necessary
-        currentWeaponIndex = (currentWeaponIndex + 1) % availableWeapons.Count;
+private void OnDisable()
+{
+// Unsubscribe from the SwitchWeapon action
+switchWeaponAction.performed -= OnSwitchWeapon;
 
-        // Update the active weapon
-        UpdateActiveWeapon();
-    }
+// Disable the input system
+playerControls.Disable();
+}
 
-    private void UpdateActiveWeapon()
-    {
-        // Update the weaponBaseSo in the ActiveWeapon script
-        if (activeWeapon != null && availableWeapons.Count > 0)
-        {
-            WeaponBaseSO selectedWeapon = availableWeapons[currentWeaponIndex];
-            activeWeapon.SetWeaponBaseSO(selectedWeapon);
+private void OnSwitchWeapon(InputAction.CallbackContext context)
+{
+// Switch to the next weapon
+SwitchToNextWeapon();
+}
 
-            // Enable/Disable weapon models based on the selected weapon
-            if (selectedWeapon.name == "Arquebus")
-            {
-                modelArquebus.SetActive(true);
-                modelSword.SetActive(false);
-            }
-            else if (selectedWeapon.name == "Sword")
-            {
-                modelArquebus.SetActive(false);
-                modelSword.SetActive(true);
-            }
-            else
-            {
-                Debug.LogWarning($"No matching model found for weapon: {selectedWeapon.name}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("ActiveWeapon script or availableWeapons list is not properly set.");
-        }
-    }
+private void SwitchToNextWeapon()
+{
+// Increment the weapon index and wrap around if necessary
+currentWeaponIndex = (currentWeaponIndex + 1) % availableWeapons.Count;
+
+// Update the active weapon
+UpdateActiveWeapon();
+}
+
+private void UpdateActiveWeapon()
+{
+// Update the weaponBaseSo in the ActiveWeapon script
+if (activeWeapon != null && availableWeapons.Count > 0)
+{
+WeaponBaseSO selectedWeapon = availableWeapons[currentWeaponIndex];
+activeWeapon.SetWeaponBaseSO(selectedWeapon);
+
+// Enable/Disable weapon models and their Weapon components based on the selected weapon
+if (selectedWeapon.name == "Arquebus")
+{
+if (modelArquebus != null && modelArquebus.GetComponent<Weapon>() != null)
+{
+modelArquebus.SetActive(true);
+modelArquebus.GetComponent<Weapon>().enabled = true; // Enable Weapon component
+}
+else
+{
+Debug.LogError("Arquebus model or Weapon component is missing!");
+}
+
+if (modelSword != null && modelSword.GetComponent<SwordWeapon>() != null)
+{
+modelSword.SetActive(false);
+modelSword.GetComponent<SwordWeapon>().enabled = false; // Disable SwordWeapon component
+modelSword.GetComponent<SwordWeapon>().FadeSliderImmediately(); // Fade out the sword slider
+}
+else
+{
+Debug.LogError("Sword model or SwordWeapon component is missing!");
+}
+
+activeWeapon.SetCurrentWeapon(modelArquebus.GetComponent<Weapon>()); // Update currentWeapon reference
+}
+else if (selectedWeapon.name == "Sword")
+{
+if (modelSword != null && modelSword.GetComponent<SwordWeapon>() != null)
+{
+modelSword.SetActive(true);
+modelSword.GetComponent<SwordWeapon>().enabled = true; // Enable SwordWeapon component
+}
+else
+{
+Debug.LogError("Sword model or SwordWeapon component is missing!");
+}
+
+if (modelArquebus != null && modelArquebus.GetComponent<Weapon>() != null)
+{
+modelArquebus.SetActive(false);
+modelArquebus.GetComponent<Weapon>().enabled = false; // Disable Weapon component
+}
+else
+{
+Debug.LogError("Arquebus model or Weapon component is missing!");
+}
+
+activeWeapon.SetCurrentSwordWeapon(modelSword.GetComponent<SwordWeapon>()); // Update currentSwordWeapon reference
+}
+else
+{
+Debug.LogWarning($"No matching model found for weapon: {selectedWeapon.name}");
+}
+}
+else
+{
+Debug.LogWarning("ActiveWeapon script or availableWeapons list is not properly set.");
+}
+}
 }

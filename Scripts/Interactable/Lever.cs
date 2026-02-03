@@ -5,99 +5,107 @@ using UnityEngine.Events;
 
 public class Lever : MonoBehaviour, IInteractable
 {
-    public List<Movers> connectedMovers; // List of connected Movers objects
-    public Animator leverAnimator; // Reference to the Animator component for the lever
-    public Renderer leverRenderer; // Reference to the Renderer component for visual changes
-    public Color highlightColor = Color.yellow; // Color to use for highlighting
-    private Color originalColor; // Original color of the lever
+    public List<Movers> connectedMovers;
+    public Animator leverAnimator;
+    public Renderer leverRenderer;
+    public Color highlightColor = Color.yellow;
+    private Color originalColor;
 
-    private bool isActivated = false; // Tracks if the lever is currently activated
-    public bool isInteractable = true; // Tracks if the lever can be interacted with
+    private bool isActivated = false;
+    public bool isInteractable = true;
+    private float cooldownTime = 1.5f;
 
-    private float cooldownTime = 1.5f; // Cooldown duration after reverse animation
+    public UnityAction<IInteractable> OnInteract { get; set; }
 
-    public UnityAction<IInteractable> OnInteract { get; set; } // Required by IInteractable
+    [Header("Flag Requirement")]
+    public string requiredFlag;
+    public bool flagMustBeTrue = true; // if false → flag must NOT exist
+
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip successSound;
+    public AudioClip failureSound;
 
     private void Start()
     {
-        // Store the original color of the lever
         if (leverRenderer != null)
-        {
             originalColor = leverRenderer.material.color;
-        }
     }
 
     private void Update()
     {
-        // Check if all connected Movers objects have reached their destinations
         if (isActivated && connectedMovers != null && AllMoversReachedDestination())
         {
-            // Start cooldown timer to make the lever interactable again
             Invoke(nameof(ResetInteractable), cooldownTime);
             isActivated = false;
-
-            // Trigger the Return animation
             leverAnimator.SetBool("Return", true);
         }
     }
 
     public void Interact(Interactor interactor, out bool interactionSuccess)
     {
+        // -------- FLAG CHECK --------
+        if (!IsFlagConditionMet())
+        {
+            PlaySound(failureSound);
+            Debug.Log("Lever interaction failed — flag condition not met.");
+            interactionSuccess = false;
+            return;
+        }
+
+        // -------- NORMAL LEVER LOGIC --------
         if (isInteractable && connectedMovers != null && connectedMovers.Count > 0)
         {
-            Debug.Log("Lever Interacted: Triggering activation animation.");
-            leverAnimator.SetBool("Activate", true); // Trigger the Activation animation
+            PlaySound(successSound);
 
-            // Activate all connected Movers objects
+            leverAnimator.SetBool("Activate", true);
+
             foreach (var mover in connectedMovers)
-            {
                 if (mover != null)
-                {
-                    mover.ToggleMovement(); // Only call ToggleMovement, do not modify mover properties
-                }
-            }
+                    mover.ToggleMovement();
 
-            // Set the lever as non-interactable
             isActivated = true;
             isInteractable = false;
-
-            // Reset the lever's color
             ResetHighlight();
 
             interactionSuccess = true;
         }
-        else if (!isInteractable)
-        {
-            Debug.Log("Lever is not interactable at the moment.");
-            interactionSuccess = false;
-        }
         else
         {
+            PlaySound(failureSound);
             interactionSuccess = false;
         }
     }
 
-    public void StopInteract()
+    public void StopInteract() { }
+
+    // ---------------- FLAG SYSTEM ----------------
+    private bool IsFlagConditionMet()
     {
-        // Optional: Add logic if needed when interaction stops
+        if (string.IsNullOrEmpty(requiredFlag)) return true;
+
+        bool hasFlag = GameFlags.Instance.HasFlag(requiredFlag);
+        return flagMustBeTrue ? hasFlag : !hasFlag;
     }
 
+    // ---------------- AUDIO ----------------
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource && clip)
+            audioSource.PlayOneShot(clip);
+    }
+
+    // ---------------- VISUALS ----------------
     public void Highlight()
     {
-        // Change the lever's color to the highlight color
         if (leverRenderer != null)
-        {
             leverRenderer.material.color = highlightColor;
-        }
     }
 
     public void ResetHighlight()
     {
-        // Reset the lever's color to its original color
         if (leverRenderer != null)
-        {
             leverRenderer.material.color = originalColor;
-        }
     }
 
     private void ResetInteractable()
@@ -106,30 +114,15 @@ public class Lever : MonoBehaviour, IInteractable
         Debug.Log("Lever is now interactable again.");
     }
 
-    // Animation Event: Called at the end of the Activation animation
-    public void OnActivationAnimationEnd()
-    {
-        Debug.Log("Activation animation ended. Resetting Activate parameter.");
-        leverAnimator.SetBool("Activate", false);
-    }
-
-    // Animation Event: Called at the end of the Return animation
-    public void OnReturnAnimationEnd()
-    {
-        Debug.Log("Return animation ended. Resetting Return parameter.");
-        leverAnimator.SetBool("Return", false);
-    }
+    public void OnActivationAnimationEnd() => leverAnimator.SetBool("Activate", false);
+    public void OnReturnAnimationEnd() => leverAnimator.SetBool("Return", false);
 
     private bool AllMoversReachedDestination()
     {
-        // Check if all connected Movers objects have reached their destinations
         foreach (var mover in connectedMovers)
-        {
             if (mover != null && !mover.HasReachedDestination())
-            {
                 return false;
-            }
-        }
+
         return true;
     }
 }

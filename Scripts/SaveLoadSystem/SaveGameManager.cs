@@ -8,6 +8,7 @@ using System;
 public class SaveGameManager : MonoBehaviour
 {
     public static SaveData data;
+    public static bool IsLoadingGame { get; private set; }
 
 
     private void Awake()
@@ -28,10 +29,18 @@ public class SaveGameManager : MonoBehaviour
         SaveLoad.Save(saveData);
     }
 
-    public static void LoadGame(SaveData _data)
+        public static void LoadGame(SaveData _data)
     {
+        IsLoadingGame = true;
         data = _data;
     }
+    public static void StartNewGame()
+    {
+        data = new SaveData();
+        IsLoadingGame = false;
+    }
+
+
 
     public static void LoadData()
     {

@@ -4,7 +4,6 @@ using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "Inventory/Item")]
 
-
 public class ItemInventoryData : ScriptableObject
 {
     public int itemID = -1; // Unique identifier for the item;
@@ -21,7 +20,10 @@ public class ItemInventoryData : ScriptableObject
 
     public string ItemType; // Type of the item (e.g., Weapon, Armor, Consumable);
     public GameObject WorldModelPrefab; // Prefab to represent the item in the world;
-
+    [Header("Flag On Pickup")]
+    public bool setsFlagOnPickup;
+    public string flagToSet;
+    public bool flagValue = true;   // NEW
 
 
 }

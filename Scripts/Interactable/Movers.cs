@@ -1,7 +1,11 @@
+// 12/9/2025 AI-Tag
+// This was created with the help of Assistant, a Unity Artificial Intelligence product.
+
+using System;
+using UnityEditor;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor; // Required for Handles (only works in the Editor)
 
 public class Movers : MonoBehaviour
 {
@@ -114,6 +118,14 @@ public class Movers : MonoBehaviour
         if (isTriggered && !isWaitingForDelay)
         {
             MoveAndRotateObject();
+        }
+        else
+        {
+            // Stop audio when not moving
+            if (hasAudio && audioSource != null && audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
         }
     }
 

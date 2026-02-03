@@ -10,19 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fffb2ea7f0e1904889692fe8c0d7688, type: 3}
-  m_Name: MusketBalls
+  m_Name: LeverParts
   m_EditorClassIdentifier: Assembly-CSharp::ItemInventoryData
-  itemID: 2
-  itemName: Musket Balls
+  itemID: 3
+  itemName: Lever Parts
   isEquippable: 0
   isUniversal: 0
-  icon: {fileID: 21300000, guid: 536693d16e035054d9a6ba62890d2b02, type: 3}
-  isStackable: 1
-  maxStackSize: 64
-  Description: "Pequena bolsa contendo 5 bolas de ferro e um pouco de p\xF3lvora,
-    que pode ser usada por qualquer tipo de arcabuz."
-  MoneyValue: 25
-  ItemType: Ammo
+  icon: {fileID: 0}
+  isStackable: 0
+  maxStackSize: 1
+  Description: "Essas pe\xE7as podem ser usadas para consertar a alavanca do port\xE3o."
+  MoneyValue: 0
+  ItemType: Key
   WorldModelPrefab: {fileID: 0}
-  setsFlagOnPickup: 0
-  flagToSet: 
+  setsFlagOnPickup: 1
+  flagToSet: PartsFound

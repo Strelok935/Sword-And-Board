@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private Animator animator; // Reference to the Animator component
+    [SerializeField] public  Animator animator; // Reference to the Animator component
     [SerializeField] private float detectionRange = 10f; // Range within which the player is detected
     [SerializeField] private Transform target; // Reference to the player's transform
     private NavMeshAgent agent;

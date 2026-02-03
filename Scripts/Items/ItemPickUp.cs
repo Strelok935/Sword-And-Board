@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SphereCollider))]
 [RequireComponent(typeof(IdSystem))]
+
 public class ItemPickUp : MonoBehaviour, IInteractable
 {
     public float PickUpRange = 2f; // Range within which the item can be interacted with
@@ -15,6 +16,7 @@ public class ItemPickUp : MonoBehaviour, IInteractable
 
     private SphereCollider sphereCollider;
     public UnityAction<IInteractable> OnInteract { get; set; } // Correctly implemented property
+    
 
     private string id;
 
@@ -61,6 +63,14 @@ public class ItemPickUp : MonoBehaviour, IInteractable
         if (inventory != null && inventory.AddToInventory(itemData, 1))
         {
             SaveGameManager.data.collectedItems.Add(id);
+
+            // ⭐ FLAG SYSTEM HOOK
+            if (itemData.setsFlagOnPickup && !string.IsNullOrEmpty(itemData.flagToSet))
+            {
+                GameFlags.Instance.SetFlag(itemData.flagToSet, itemData.flagValue);
+
+            }
+
             success = true;
             Destroy(gameObject);
         }

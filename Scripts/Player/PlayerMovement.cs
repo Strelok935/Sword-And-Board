@@ -11,6 +11,8 @@ public class PlayerMovement : MonoBehaviour
     public float jumpHeight = 2f;
     public float sprintSpeed = 8f;
     public float crouchSpeed = 2f;
+    private bool controlsLocked = false;
+ 
 
     [Header("Crouch Settings")]
     public float crouchHeight = 0.9f;
@@ -22,6 +24,16 @@ public class PlayerMovement : MonoBehaviour
     [Header("Jump Settings")]
     public bool BunnyHopEnabled = false;
     public bool canJump = true; // Tracks if the player can jump
+
+    // Add near top of class
+    public Vector2 MoveInput => moveInput;
+    private bool isGrounded;   // TRUE grounded state for the player
+
+    public bool Grounded => isGrounded;
+
+    public bool IsSprinting => isSprinting;
+    public bool IsMoving => moveInput.sqrMagnitude > 0.01f;
+    public bool IsCrouching => isCrouching;
 
     public void SetJumpEnabled(bool enabled)
     {
@@ -47,16 +59,6 @@ public class PlayerMovement : MonoBehaviour
     private IInteractable currentInteractable; // Currently focused interactable object
 
 
-    [Header("Camera Bobbing")]
-    public float bobFrequency = 6f;
-    public float bobAmplitude = 0.05f;
-    public float crouchBobAmplitude = 0.025f;
-    public float sprintBobAmplitude = 0.08f;
-    private float bobTimer = 0f;
-    public float bobHorizontalAmplitude = 0.03f; // Intensity of left-right bobbing
-    public float bobHorizontalFrequency = 6f;    // Speed of left-right bobbing
-    
-
     [Header("Fall Damage")]
     public float fallDamageThreshold = 5f;
     public float fallDamageMultiplier = 10f;
@@ -66,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
     private DamageZone currentDamageZone; 
 
 
+     
     [Header("Vault Settings")]
     public float vaultUpDuration = 0.3f;
     public float vaultForwardDuration = 0.3f;
@@ -169,7 +172,7 @@ public class PlayerMovement : MonoBehaviour
 
         // Interaction input (bound to F)
 
-        controls.Player.Interact.started += ctx => HandleInteraction(); // Trigger interaction instantly
+        controls.Player.Interact.started += ctx => OnInteractPressed(); // Trigger interaction instantly
 
         controls.Player.Attack.performed += ctx => HandleAttack();
 
@@ -208,6 +211,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (controlsLocked) return;
         if (isVaulting)
         {
             HandleVault();
@@ -228,7 +232,6 @@ public class PlayerMovement : MonoBehaviour
         HandleCrouch();
         HandleWallSliding();
         HandleFallDamage();
-        HandleCameraBobbing();
         HandleLeaning();
         
 
@@ -257,9 +260,10 @@ public class PlayerMovement : MonoBehaviour
 
         void HandleAttack()
     {
+        if (controlsLocked) return;
         if (activeWeapon != null)
         {
-        activeWeapon.HandleShoot(); // Call the shooting method from ActiveWeapon
+        activeWeapon.HandleAttack(); // Call the shooting method from ActiveWeapon
         }
         else
         {
@@ -293,12 +297,24 @@ public class PlayerMovement : MonoBehaviour
         currentInteractable = null;
     }
 
-    
+    void OnInteractPressed()
+    {
+        // If dialogue is active, let DialogueManager handle progression
+        if (DialogueManager.IsDialogueActive)
+        {
+            DialogueManager.Instance.NextLine(); 
+            return;
+        }
+
+        // Otherwise do normal world interaction
+        HandleInteraction();
+    }
+
 
     void HandleInteraction()
     {
        // Check if the player presses the interaction key (e.g., "F")
-        if (Keyboard.current.fKey.wasPressedThisFrame && interactor.CurrentInteractable != null)
+          if (interactor.CurrentInteractable != null)
         {
             // Interact with the current interactable object
             interactor.CurrentInteractable.Interact(interactor, out bool interactionSuccess);
@@ -316,6 +332,7 @@ public class PlayerMovement : MonoBehaviour
     // ---------------- Look ----------------
     void HandleLook()
     {
+        if (controlsLocked) return;
         float mouseX = lookInput.x * mouseSensitivity * Time.deltaTime;
         float mouseY = lookInput.y * mouseSensitivity * Time.deltaTime;
 
@@ -355,43 +372,40 @@ public class PlayerMovement : MonoBehaviour
 
     
 
-    void HandleGravityAndJump()
+        void HandleGravityAndJump()
     {
-        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height / 2 + 0.1f);
-        
+        // Use sphere/raycast based ground detection (more reliable than controller.isGrounded)
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, controller.height / 2f + 0.15f);
 
-        if (isGrounded && canJump)
+        // If grounded and falling, reset downward velocity
+        if (isGrounded && velocity.y < 0f)
         {
-            if (controller.isGrounded && velocity.y < 0)
-            {
-                velocity.y = 0f;
-                jumpQueued = false;
-                
-            }
-
-            if (jumpQueued)
-            {
-                if (playerStats != null && playerStats.currentStamina > 0)
-                {
-                    velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                    playerStats.UseStamina(15f);
-                    Debug.Log("Jump executed");
-                }
-                else
-                {
-                    Debug.Log("Not enough stamina to jump.");
-                }
-
-                if (!BunnyHopEnabled) jumpQueued = false;
-            }
+            velocity.y = -2f; // small negative keeps player snapped to ground
+            isFalling = false;
         }
-        else
+
+        // Jump
+        if (jumpQueued && isGrounded && canJump)
+        {
+            if (playerStats != null && playerStats.currentStamina > 0)
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                playerStats.UseStamina(15f);
+            }
+
+            if (!BunnyHopEnabled)
+                jumpQueued = false;
+        }
+
+        // Apply gravity when airborne
+        if (!isGrounded)
         {
             velocity.y += gravity * Time.deltaTime;
         }
 
         controller.Move(velocity * Time.deltaTime);
 
+        // Prevent infinite jump queue in air
         if (!isGrounded && !BunnyHopEnabled)
         {
             jumpQueued = false;
@@ -552,6 +566,25 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+
+    public void SetControlsLocked(bool locked)
+    {
+        controlsLocked = locked;
+
+        // Stop movement immediately
+        moveInput = Vector2.zero;
+        velocity = Vector3.zero;
+        jumpQueued = false;
+
+        // Disable weapon usage
+        if (activeWeapon != null)
+            activeWeapon.enabled = !locked;
+
+        // Cursor handling
+        Cursor.lockState = locked ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = locked;
+    }
+
     // ---------------- Crouch ----------------
         void HandleCrouch()
     {
@@ -576,32 +609,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // ---------------- Camera Bobbing ----------------
-    void HandleCameraBobbing()
-{
-    if (moveInput.magnitude > 0 && controller.isGrounded)
-    {
-        // Increment the bob timer based on movement and sprinting/crouching states
-        bobTimer += Time.deltaTime * bobFrequency * (isSprinting ? 1.5f : (isCrouching ? 0.75f : 1f));
-
-        // Calculate vertical bobbing offset
-        float verticalAmplitude = isSprinting ? sprintBobAmplitude : (isCrouching ? crouchBobAmplitude : bobAmplitude);
-        float verticalOffset = Mathf.Sin(bobTimer) * verticalAmplitude;
-
-        // Calculate horizontal bobbing offset (alternates left and right)
-        float horizontalOffset = Mathf.Sin(bobTimer + Mathf.PI / 2) * bobHorizontalAmplitude;
-
-        // Apply both vertical and horizontal bobbing to the camera's position
-        Vector3 targetCamPos = (isCrouching ? crouchingCamPos : standingCamPos) + new Vector3(horizontalOffset, verticalOffset, 0);
-        cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, targetCamPos, Time.deltaTime * 8f);
-    }
-    else
-    {
-        // Reset the bob timer and smoothly return the camera to its default position
-        bobTimer = 0;
-        Vector3 targetCamPos = isCrouching ? crouchingCamPos : standingCamPos;
-        cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, targetCamPos, Time.deltaTime * 8f);
-    }
-}
+  
 
     private void ToggleCursorLock()
     {
