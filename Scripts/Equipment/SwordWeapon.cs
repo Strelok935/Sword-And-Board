@@ -45,6 +45,11 @@ swordAttackSlider.value = swordAttackSlider.maxValue;
 swordAttackSliderCanvasGroup.alpha = 0; // Start with the slider hidden
 }
 
+private void OnDisable()
+{
+HideSliderImmediately();
+}
+
 private void Update()
 {
 if (!canAttack)
@@ -169,6 +174,16 @@ if (fadeCoroutine != null)
 StopCoroutine(fadeCoroutine);
 }
 fadeCoroutine = StartCoroutine(FadeSliderOutImmediate());
+}
+
+public void HideSliderImmediately()
+{
+if (fadeCoroutine != null)
+{
+StopCoroutine(fadeCoroutine);
+}
+
+swordAttackSliderCanvasGroup.alpha = 0; // Ensure the slider is fully hidden
 }
 
 private IEnumerator FadeSliderOut()
