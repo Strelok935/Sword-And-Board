@@ -95,7 +95,7 @@ if (modelSword != null && modelSword.GetComponent<SwordWeapon>() != null)
 {
 modelSword.SetActive(false);
 modelSword.GetComponent<SwordWeapon>().enabled = false; // Disable SwordWeapon component
-modelSword.GetComponent<SwordWeapon>().FadeSliderImmediately(); // Fade out the sword slider
+modelSword.GetComponent<SwordWeapon>().HideSliderImmediately(); // Hide the sword slider immediately
 }
 else
 {
