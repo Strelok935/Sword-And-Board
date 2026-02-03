@@ -14,6 +14,13 @@ public class PlayerInventory : InventoryHolder
     private EquipmentSystem equipmentSystem;
 
 
+    protected override void Awake()
+    {
+        base.Awake();
+        primaryInventorySystem = PlayerInventoryMemory.GetOrStore(primaryInventorySystem);
+        primaryInventorySystem.OnSlotChanged += HandleInventoryChanged;
+    }
+
     public void Start()
     {
         SaveGameManager.data.playerInventory = new SaveDataInventory(primaryInventorySystem);
@@ -29,6 +36,7 @@ public class PlayerInventory : InventoryHolder
         if (data.playerInventory.InvSyst != null)
         {
             this.primaryInventorySystem = data.playerInventory.InvSyst;
+            PlayerInventoryMemory.Store(primaryInventorySystem);
             OnPlayerInventoryChanged?.Invoke();
         }
     }
@@ -53,6 +61,21 @@ public class PlayerInventory : InventoryHolder
     public int GetGold()
     {
         return _gold;
+    }
+
+    private void OnDisable()
+    {
+        if (primaryInventorySystem != null)
+        {
+            primaryInventorySystem.OnSlotChanged -= HandleInventoryChanged;
+        }
+    }
+
+    private void HandleInventoryChanged(InventorySlot slot)
+    {
+        PlayerInventoryMemory.Store(primaryInventorySystem);
+        SaveGameManager.data.playerInventory = new SaveDataInventory(primaryInventorySystem);
+        OnPlayerInventoryChanged?.Invoke();
     }
 
 }
