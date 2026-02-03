@@ -10,6 +10,8 @@ public class Trader : MonoBehaviour, IInteractable
 {
     [SerializeField] private ShopItems _shopItems;
     [SerializeField] private TradeSystem _shopSystem;
+    [Header("Dialogue")]
+    [SerializeField] private DialogueData[] _dialogueOptions;
 
     public static UnityAction<TradeSystem, PlayerInventory> OnOpenTrader;
 
@@ -61,13 +63,26 @@ public class Trader : MonoBehaviour, IInteractable
     public UnityAction<IInteractable> OnInteract { get; set; } // Required by IInteractable
     public void Interact(Interactor interactor, out bool interactionSuccess)
     {
+        if (DialogueManager.IsDialogueActive)
+        {
+            interactionSuccess = false;
+            return;
+        }
 
         var playerInventory = interactor.GetComponent<PlayerInventory>();
 
         if (playerInventory != null)
         {
-
-            OnOpenTrader?.Invoke(_shopSystem, playerInventory);
+            DialogueData chosenDialogue = GetValidDialogue();
+            if (chosenDialogue != null && DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartDialogue(chosenDialogue);
+                StartCoroutine(OpenTradeAfterDialogue(playerInventory));
+            }
+            else
+            {
+                OnOpenTrader?.Invoke(_shopSystem, playerInventory);
+            }
             interactionSuccess = true;
         }
         else
@@ -80,6 +95,45 @@ public class Trader : MonoBehaviour, IInteractable
     public void StopInteract()
     {
         // Optional: Add logic if needed when interaction stops
+    }
+
+    private DialogueData GetValidDialogue()
+    {
+        if (_dialogueOptions == null || _dialogueOptions.Length == 0) return null;
+
+        foreach (var dialogue in _dialogueOptions)
+        {
+            if (dialogue == null) continue;
+
+            if (dialogue.conditions == null || dialogue.conditions.Length == 0)
+            {
+                return dialogue;
+            }
+
+            bool valid = true;
+
+            foreach (var condition in dialogue.conditions)
+            {
+                if (!condition.IsMet())
+                {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (valid) return dialogue;
+        }
+
+        return null;
+    }
+
+    private IEnumerator OpenTradeAfterDialogue(PlayerInventory playerInventory)
+    {
+        yield return new WaitUntil(() => !DialogueManager.IsDialogueActive);
+        if (playerInventory != null)
+        {
+            OnOpenTrader?.Invoke(_shopSystem, playerInventory);
+        }
     }
 
 }
