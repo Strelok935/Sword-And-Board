@@ -1,13 +1,16 @@
 using UnityEngine;
+using System.Collections;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
-public class InventorySlotUI : MonoBehaviour
+public class InventorySlotUI : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private Image itemSprite; // Reference to the item sprite image
     [SerializeField] private TextMeshProUGUI itemCountText; // Reference to the item count text
     [SerializeField] private InventorySlot assignedInventorySlot; // Reference to the assigned inventory slot
 
-    private Button button; // Reference to the button component
+    [SerializeField] private float doubleClickThreshold = 0.25f;
+    private Coroutine clickRoutine;
 
     public InventoryDisplay ParentDisplay { get; private set; } // Reference to the parent inventory display
     public InventorySlot AssignedInventorySlot => assignedInventorySlot; // Reference to the assigned inventory slot
@@ -17,9 +20,6 @@ public class InventorySlotUI : MonoBehaviour
         ClearSlot();
 
         itemSprite.preserveAspect = true;   
-
-        button = GetComponent<Button>();
-        button?.onClick.AddListener(OnUiSlotClick);
 
         ParentDisplay = transform.parent.GetComponent<InventoryDisplay>();
     }
@@ -66,9 +66,23 @@ public class InventorySlotUI : MonoBehaviour
         itemCountText.text = string.Empty;
     }
 
-    
-      private void OnUiSlotClick() // Handle UI slot click events
+    public void OnPointerClick(PointerEventData eventData) // Handle UI slot click events
     {
+        if (clickRoutine != null)
+        {
+            StopCoroutine(clickRoutine);
+            clickRoutine = null;
+            ParentDisplay?.SlotDoubleClicked(this);
+            return;
+        }
+
+        clickRoutine = StartCoroutine(HandleSingleClick());
+    }
+
+    private IEnumerator HandleSingleClick()
+    {
+        yield return new WaitForSecondsRealtime(doubleClickThreshold);
         ParentDisplay?.SlotClicked(this);
+        clickRoutine = null;
     }
 }
