@@ -3,33 +3,33 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] public  Animator animator; // Reference to the Animator component
-    [SerializeField] private float detectionRange = 10f; // Range within which the player is detected
-    [SerializeField] private Transform target; // Reference to the player's transform
-    private NavMeshAgent agent;
-    private EnemyHealth enemyHealth; // Reference to the EnemyHealth component
+    [SerializeField] public Animator animator; // Reference to the Animator component
+    [SerializeField] protected float detectionRange = 10f; // Range within which the player is detected
+    [SerializeField] protected Transform target; // Reference to the player's transform
+    protected NavMeshAgent agent;
+    protected EnemyHealth enemyHealth; // Reference to the EnemyHealth component
 
-    private enum EnemyState
+    protected enum EnemyState
     {
         Idle,
         Chase
     }
 
-    private EnemyState currentState;
+    protected EnemyState currentState;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         enemyHealth = GetComponent<EnemyHealth>(); // Get the EnemyHealth component
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         currentState = EnemyState.Idle;
         animator.SetBool("Spotted", false); // Ensure the Spotted parameter is set to false initially
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         // Check the distance between the enemy and the player
         float distanceToPlayer = Vector3.Distance(transform.position, target.position);
@@ -53,7 +53,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void SwitchState(EnemyState newState)
+    protected virtual void SwitchState(EnemyState newState)
     {
         if (currentState != newState)
         {
