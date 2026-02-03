@@ -6,6 +6,7 @@ public abstract class InventoryDisplay : MonoBehaviour
 {
     [SerializeField] private InputActionReference splitStackAction; // Reference to the Input Action for splitting stacks
     [SerializeField] MouseItemData mouseItemData; // The mouse item data
+    [SerializeField] private PlayerItemEffectController itemEffectController;
     protected InventorySystem inventorySystem; // The inventory system
     protected Dictionary<InventorySlotUI, InventorySlot> slotUIMap; // Mapping of InventorySlotUI to InventorySlot
 
@@ -18,6 +19,11 @@ public abstract class InventoryDisplay : MonoBehaviour
         {
             splitStackAction.action.Enable();
         }   
+
+        if (itemEffectController == null)
+        {
+            itemEffectController = FindObjectOfType<PlayerItemEffectController>();
+        }
 
     }
 
@@ -117,6 +123,39 @@ public abstract class InventoryDisplay : MonoBehaviour
             }
             
         }
+    }
+
+    public void SlotDoubleClicked(InventorySlotUI clickedUISlot) // Handle double-click use events
+    {
+        if (mouseItemData != null && mouseItemData.AssignedInventorySlot?.ItemData != null)
+        {
+            return;
+        }
+
+        if (clickedUISlot == null || clickedUISlot.AssignedInventorySlot?.ItemData == null)
+        {
+            return;
+        }
+
+        if (itemEffectController == null)
+        {
+            itemEffectController = FindObjectOfType<PlayerItemEffectController>();
+        }
+
+        if (itemEffectController == null)
+        {
+            Debug.LogWarning("No PlayerItemEffectController found to use inventory items.");
+            return;
+        }
+
+        var itemData = clickedUISlot.AssignedInventorySlot.ItemData;
+        if (!itemEffectController.TryApplyItem(itemData))
+        {
+            return;
+        }
+
+        clickedUISlot.AssignedInventorySlot.RemoveFromStack(1);
+        clickedUISlot.UpdateUISlot();
     }
 
     private void SwapSlots(InventorySlotUI clickedUISlot) // Swap the contents of the clicked slot with the mouse slot

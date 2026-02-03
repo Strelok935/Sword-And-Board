@@ -1,5 +1,4 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
@@ -74,6 +73,18 @@ public class PlayerStats : MonoBehaviour
 
         // Reset the regeneration delay timer
         staminaRegenTimer = staminaRegenDelay;
+    }
+
+    public void RestoreHealth(float amount)
+    {
+        if (amount <= 0f) return;
+        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
+    }
+
+    public void RestoreStamina(float amount)
+    {
+        if (amount <= 0f) return;
+        currentStamina = Mathf.Clamp(currentStamina + amount, 0, maxStamina);
     }
     private void Die()
     {
