@@ -37,7 +37,14 @@ public class EnemyHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             Debug.Log("Enemy Died");
-            Destroy(gameObject);
+            if (enemy != null)
+            {
+                enemy.HandleDeath();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 
