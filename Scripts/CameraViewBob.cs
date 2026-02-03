@@ -3,42 +3,66 @@ using UnityEngine;
 public class CameraViewBob : MonoBehaviour
 {
     public PlayerMovement player;
-    public float frequency = 6f;
-    public float amplitude = 0.05f;
-    public float sprintMultiplier = 1.5f;
-    public float smooth = 8f;
 
-    Vector3 startPos;
-    float timer;
+    [Header("Movement Bob")]
+    public float moveBobFrequency = 7f;
+    public float moveBobVerticalAmp = 0.05f;
+    public float moveBobHorizontalAmp = 0.03f;
+
+    [Header("Sprint Modifier")]
+    public float sprintBobMultiplier = 1.6f;
+
+    [Header("Idle Breathing Bob")]
+    public float idleBobFrequency = 1.5f;
+    public float idleBobVerticalAmp = 0.01f;
+    public float idleBobHorizontalAmp = 0.005f;
+
+    [Header("Smoothing")]
+    public float smoothSpeed = 8f;
+
+    private Vector3 startLocalPos;
+    private float bobTimer;
 
     void Start()
     {
-        startPos = transform.localPosition;
+        startLocalPos = transform.localPosition;
     }
 
     void Update()
     {
         if (player == null) return;
 
-        bool moving = player.MoveInput.magnitude > 0.1f;
-        bool Grounded = player.Grounded;
+        bool grounded = player.Grounded;
+        bool moving = player.IsMoving;
 
-        if (moving && Grounded)
+        float frequency;
+        float vAmp;
+        float hAmp;
+
+        if (grounded && moving)
         {
-            float speedFactor = player.IsSprinting ? sprintMultiplier : 1f;
+            frequency = moveBobFrequency;
+            if (player.IsSprinting)
+                frequency *= sprintBobMultiplier;
 
-            timer += Time.deltaTime * frequency * speedFactor;
-
-            float y = Mathf.Sin(timer) * amplitude;
-            float x = Mathf.Cos(timer * 0.5f) * amplitude * 0.5f;
-
-            Vector3 bob = startPos + new Vector3(x, y, 0);
-            transform.localPosition = Vector3.Lerp(transform.localPosition, bob, Time.deltaTime * smooth);
+            vAmp = moveBobVerticalAmp;
+            hAmp = moveBobHorizontalAmp;
         }
         else
         {
-            timer = 0;
-            transform.localPosition = Vector3.Lerp(transform.localPosition, startPos, Time.deltaTime * smooth);
+            frequency = idleBobFrequency;
+            vAmp = idleBobVerticalAmp;
+            hAmp = idleBobHorizontalAmp;
         }
+
+        bobTimer += Time.deltaTime * frequency;
+
+        float vertical = Mathf.Sin(bobTimer) * vAmp;
+        float horizontal = Mathf.Sin(bobTimer * 0.5f) * hAmp;
+
+        Vector3 bobOffset = new Vector3(horizontal, vertical, 0);
+        Vector3 targetPos = startLocalPos + bobOffset;
+
+        transform.localPosition = Vector3.Lerp(transform.localPosition, targetPos, Time.deltaTime * smoothSpeed);
     }
 }

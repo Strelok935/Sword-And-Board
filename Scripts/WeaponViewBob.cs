@@ -2,52 +2,81 @@ using UnityEngine;
 
 public class WeaponViewBob : MonoBehaviour
 {
+    [Header("References")]
     public PlayerMovement player;
 
-    [Header("Base Bob")]
-    public float bobSpeed = 6f;
-    public float verticalAmount = 0.04f;
-    public float horizontalAmount = 0.05f;
+    [Header("Movement Bob")]
+    public float bobFrequency = 7f;
+    public float bobVerticalAmplitude = 0.04f;
+    public float bobHorizontalAmplitude = 0.025f;
+    public float sprintMultiplier = 1.6f;
 
-    [Header("Sprint Modifier")]
-    public float sprintSpeedMultiplier = 1.6f;
-    public float sprintBobMultiplier = 1.8f;
+    [Header("Idle Breathing Bob")]
+    public float idleFrequency = 1.2f;
+    public float idleAmplitude = 0.01f;
 
-    public float idleReturnSpeed = 6f;
+    [Header("Momentum Lean")]
+    public float leanAmount = 6f;
+    public float leanSmooth = 6f;
 
     private float bobTimer;
-    private Vector3 startLocalPos;
+    private float idleTimer;
+
+    private Vector3 initialLocalPos;
+    private Quaternion initialLocalRot;
+
+    private float currentLeanZ;
 
     void Start()
     {
-        startLocalPos = transform.localPosition;
+        if (!player) player = GetComponentInParent<PlayerMovement>();
+
+        // Store ORIGINAL pose (critical fix)
+        initialLocalPos = transform.localPosition;
+        initialLocalRot = transform.localRotation;
     }
 
     void Update()
     {
-        if (player == null) return;
+        if (!player) return;
 
         bool moving = player.IsMoving && player.Grounded;
-        bool sprinting = player.IsSprinting && moving;
+        bool sprinting = player.IsSprinting;
 
-        float speed = sprinting ? bobSpeed * sprintSpeedMultiplier : bobSpeed;
-        float vertAmt = sprinting ? verticalAmount * sprintBobMultiplier : verticalAmount;
-        float horizAmt = sprinting ? horizontalAmount * sprintBobMultiplier : horizontalAmount;
+        float speedMultiplier = sprinting ? sprintMultiplier : 1f;
 
+        Vector3 bobOffset = Vector3.zero;
+
+        // -------- MOVEMENT BOB --------
         if (moving)
         {
-            bobTimer += Time.deltaTime * speed;
+            bobTimer += Time.deltaTime * bobFrequency * speedMultiplier;
 
-            float vertical = Mathf.Sin(bobTimer) * vertAmt;
-            float horizontal = Mathf.Cos(bobTimer * 0.5f) * horizAmt;
+            float vertical = Mathf.Sin(bobTimer) * bobVerticalAmplitude;
+            float horizontal = Mathf.Sin(bobTimer * 0.5f) * bobHorizontalAmplitude;
 
-            Vector3 targetPos = startLocalPos + new Vector3(horizontal, vertical, 0);
-            transform.localPosition = targetPos;
+            bobOffset += new Vector3(horizontal, vertical, 0);
         }
         else
         {
             bobTimer = 0;
-            transform.localPosition = Vector3.Lerp(transform.localPosition, startLocalPos, Time.deltaTime * idleReturnSpeed);
         }
+
+        // -------- IDLE BREATHING --------
+        idleTimer += Time.deltaTime * idleFrequency;
+        float idleY = Mathf.Sin(idleTimer) * idleAmplitude;
+        bobOffset += new Vector3(0, idleY, 0);
+
+        // Apply POSITION relative to original
+        transform.localPosition = initialLocalPos + bobOffset;
+
+        // -------- MOMENTUM LEAN --------
+        Vector2 moveInput = player.MoveInput;
+        float targetLean = -moveInput.x * leanAmount;
+        currentLeanZ = Mathf.Lerp(currentLeanZ, targetLean, Time.deltaTime * leanSmooth);
+
+        // Apply ROTATION relative to original
+        Quaternion leanRot = Quaternion.Euler(0, 0, currentLeanZ);
+        transform.localRotation = initialLocalRot * leanRot;
     }
 }

@@ -44,7 +44,6 @@ Debug.LogError("Attack AudioSource not assigned!");
 swordAttackSlider.value = swordAttackSlider.maxValue;
 swordAttackSliderCanvasGroup.alpha = 0; // Start with the slider hidden
 }
-
 private void OnDisable()
 {
 HideSliderImmediately();
