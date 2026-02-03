@@ -14,6 +14,11 @@ public class RaycastEnemy : Enemy
 
     protected override void Update()
     {
+        if (isDying)
+        {
+            return;
+        }
+
         if (target == null || enemyHealth == null)
         {
             return;
@@ -42,6 +47,7 @@ public class RaycastEnemy : Enemy
         }
 
         currentState = newState;
+        HandleStateAudio(currentState);
 
         switch (currentState)
         {
