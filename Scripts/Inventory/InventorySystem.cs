@@ -161,13 +161,22 @@ public class InventorySystem
 
     public void RemoveItemsFromInventory(ItemInventoryData data, int amount)
     {
+        if (amount <= 0)
+        {
+            return;
+        }
+
         if (ContainsItem(data, out List<InventorySlot> invSlot))
         {
             foreach (var slot in invSlot)
             {
                 var stackSize = slot.StackSize;
 
-                if (stackSize > amount) slot.RemoveFromStack(amount);
+                if (stackSize > amount)
+                {
+                    slot.RemoveFromStack(amount);
+                    amount = 0;
+                }
                 else
                 {
                     slot.RemoveFromStack(stackSize);
@@ -175,7 +184,11 @@ public class InventorySystem
                 }
 
                 OnSlotChanged?.Invoke(slot);
-                
+
+                if (amount <= 0)
+                {
+                    break;
+                }
             }
         }
     }
