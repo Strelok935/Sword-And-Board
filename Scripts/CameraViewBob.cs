@@ -27,6 +27,11 @@ public class CameraViewBob : MonoBehaviour
     {
         startLocalPos = transform.localPosition;
     }
+    public void ResetBasePosition(Vector3 newBasePos)
+    {
+        startLocalPos = newBasePos;
+    }
+
 
     void Update()
     {

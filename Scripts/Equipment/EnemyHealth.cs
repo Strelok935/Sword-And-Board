@@ -24,14 +24,9 @@ public class EnemyHealth : MonoBehaviour
         // Trigger the damage animation using the animator reference from the Enemy script
         if (enemy != null && enemy.animator != null)
         {
-            enemy.animator.SetTrigger("DamageTrigger");
+            enemy.animator.SetTrigger("Hit");
 
-            // Stop the enemy movement by setting NavMeshAgent speed to 0
-            if (agent != null)
-            {
-                agent.speed = 0;
-                Debug.Log("Enemy movement stopped during hit animation.");
-            }
+            
         }
 
         if (currentHealth <= 0)
@@ -53,8 +48,8 @@ public class EnemyHealth : MonoBehaviour
     {
         if (enemy != null && enemy.animator != null)
         {
-            enemy.animator.ResetTrigger("DamageTrigger");
-            Debug.Log("DamageTrigger reset.");
+            enemy.animator.ResetTrigger("Hit");
+            Debug.Log("Hit reset.");
 
             // Restore the enemy's movement speed
             if (agent != null)

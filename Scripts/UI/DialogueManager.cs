@@ -6,6 +6,7 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private DialogueUI dialogueUI;
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Interactor interactor;
+    [SerializeField] private CameraViewBob cameraBob;
 
     public static DialogueManager Instance { get; private set; }
     public static bool IsDialogueActive { get; private set; }
@@ -24,6 +25,8 @@ public class DialogueManager : MonoBehaviour
     public void StartDialogue(DialogueData dialogue)
     {
         if (IsDialogueActive || dialogue == null || dialogue.lines.Length == 0) return;
+        playerMovement.SetControlsLocked(true);
+        cameraBob.ResetBasePosition(playerMovement.standingCamPos);
 
         currentDialogue = dialogue;
         currentLineIndex = 0;
@@ -69,7 +72,7 @@ public class DialogueManager : MonoBehaviour
     {
         if (isClosing) return;
         isClosing = true;
-
+        cameraBob.ResetBasePosition(playerMovement.standingCamPos);
         dialogueUI.Hide();
         IsDialogueActive = false;
 

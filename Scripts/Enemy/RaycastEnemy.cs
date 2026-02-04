@@ -47,7 +47,7 @@ public class RaycastEnemy : Enemy
         }
 
         currentState = newState;
-        HandleStateAudio(currentState);
+        HandleIdleAudio();
 
         switch (currentState)
         {
@@ -116,4 +116,5 @@ public class RaycastEnemy : Enemy
 
         return baseRotation * spread * Vector3.forward;
     }
+    
 }

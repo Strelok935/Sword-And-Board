@@ -380,13 +380,23 @@ public class PlayerMovement : MonoBehaviour
         // If grounded and falling, reset downward velocity
         if (isGrounded && velocity.y < 0f)
         {
-            velocity.y = -2f; // small negative keeps player snapped to ground
+            velocity.y = -2f;
+
+            // 🔥 FORCE STAND when landing (unless player is actively crouching)
+            if (!Keyboard.current.ctrlKey.isPressed && !isCrouching)
+            {
+                ForceStand();
+            }
+
             isFalling = false;
         }
 
-        // Jump
+                // Jump
         if (jumpQueued && isGrounded && canJump)
         {
+            if (isCrouching)
+                ForceStand();   // 🔥 Stand up before jump
+
             if (playerStats != null && playerStats.currentStamina > 0)
             {
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
@@ -409,6 +419,11 @@ public class PlayerMovement : MonoBehaviour
         if (!isGrounded && !BunnyHopEnabled)
         {
             jumpQueued = false;
+        }
+
+        if (isGrounded && !isCrouching && controller.height < standHeight - 0.01f)
+        {
+            ForceStandFullHeight();
         }
     }
 
@@ -466,8 +481,28 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // ---------------- Leaning ----------------
+     
+    void ForceStand()
+    {
+        isCrouching = false;
+        targetHeight = standHeight;
 
+        controller.height = standHeight;
+        controller.center = new Vector3(0, standHeight / 2f, 0);
 
+        cameraTransform.localPosition = standingCamPos;
+    }
+    public void ForceStandFullHeight()
+        {
+            isCrouching = false;
+            targetHeight = standHeight;
+
+            controller.height = standHeight;
+            controller.center = new Vector3(0, standHeight / 2f, 0);
+
+            // Reset camera EXACTLY to standing position
+            cameraTransform.localPosition = standingCamPos;
+        }
       
     void HandleLeaning()
     {
@@ -571,19 +606,26 @@ public class PlayerMovement : MonoBehaviour
     {
         controlsLocked = locked;
 
-        // Stop movement immediately
         moveInput = Vector2.zero;
         velocity = Vector3.zero;
         jumpQueued = false;
 
-        // Disable weapon usage
         if (activeWeapon != null)
             activeWeapon.enabled = !locked;
 
-        // Cursor handling
         Cursor.lockState = locked ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = locked;
+
+        if (locked)
+        {
+            isCrouching = false;
+            targetHeight = standHeight;
+
+            // 🔥 SNAP CAMERA TO STANDING POSITION IMMEDIATELY
+            cameraTransform.localPosition = standingCamPos;
+        }
     }
+
 
     // ---------------- Crouch ----------------
         void HandleCrouch()
@@ -600,12 +642,26 @@ public class PlayerMovement : MonoBehaviour
             controller.height = standHeight;
             controller.center = new Vector3(0, standHeight / 2f, 0);
         }
+        // Safety net: if player should be standing but height drifted
+        if (!isCrouching && controller.height < standHeight - 0.01f)
+        {
+            controller.height = standHeight;
+            controller.center = new Vector3(0, standHeight / 2f, 0);
+        }
     }
 
     void ToggleCrouch()
     {
         isCrouching = !isCrouching;
-        targetHeight = isCrouching ? crouchHeight : standHeight;
+
+        if (isCrouching)
+        {
+            targetHeight = crouchHeight;
+        }
+        else
+        {
+            ForceStand();  // 🔥 Always restore full height
+        }
     }
 
     // ---------------- Camera Bobbing ----------------

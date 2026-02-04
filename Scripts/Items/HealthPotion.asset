@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fffb2ea7f0e1904889692fe8c0d7688, type: 3}
-  m_Name: LeverParts
+  m_Name: HealthPotion
   m_EditorClassIdentifier: Assembly-CSharp::ItemInventoryData
-  itemID: 3
-  itemName: Lever Parts
+  itemID: 5
+  itemName: Health Potion
   isEquippable: 0
   isUniversal: 0
-  icon: {fileID: 21300000, guid: e5a88cf9ddcd65d469605f5f2961ff90, type: 3}
-  isStackable: 0
-  maxStackSize: 1
-  Description: "Essas pe\xE7as podem ser usadas para consertar a alavanca do port\xE3o."
-  MoneyValue: 0
-  ItemType: Key
-  WorldModelPrefab: {fileID: 0}
-  setsFlagOnPickup: 1
-  flagToSet: PartsFound
-  flagValue: 1
-  isConsumable: 0
+  icon: {fileID: 21300000, guid: c966b44de68625f449b2f73a6c703517, type: 3}
+  isStackable: 1
+  maxStackSize: 64
+  Description: "Uma Peguena Po\xE7\xE3o de Vida"
+  MoneyValue: 25
+  ItemType: Item
+  WorldModelPrefab: {fileID: 5826569241169813532, guid: d83d1f230e214b141b1226af1145a803, type: 3}
+  setsFlagOnPickup: 0
+  flagToSet: 
+  flagValue: 0
+  isConsumable: 1
   useEffect:
-    healAmount: 0
+    healAmount: 25
     staminaAmount: 0
     durationSeconds: 0
     speedMultiplier: 1

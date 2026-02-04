@@ -23,6 +23,34 @@ MonoBehaviour:
     que pode ser usada por qualquer tipo de arcabuz."
   MoneyValue: 25
   ItemType: Ammo
-  WorldModelPrefab: {fileID: 0}
+  WorldModelPrefab: {fileID: 4982592599101970581, guid: 9fd0167909c827a4083103d8c3d8536b, type: 3}
   setsFlagOnPickup: 0
   flagToSet: 
+  flagValue: 0
+  isConsumable: 0
+  useEffect:
+    healAmount: 0
+    staminaAmount: 0
+    durationSeconds: 0
+    speedMultiplier: 1
+    speedAdd: 0
+    sprintSpeedMultiplier: 1
+    sprintSpeedAdd: 0
+    crouchSpeedMultiplier: 1
+    crouchSpeedAdd: 0
+    jumpHeightMultiplier: 1
+    jumpHeightAdd: 0
+    gravityMultiplier: 1
+    gravityAdd: 0
+    mouseSensitivityMultiplier: 1
+    mouseSensitivityAdd: 0
+    crouchTransitionSpeedMultiplier: 1
+    crouchTransitionSpeedAdd: 0
+    ladderClimbSpeedMultiplier: 1
+    ladderClimbSpeedAdd: 0
+    slideSpeedMultiplier: 1
+    slideSpeedAdd: 0
+    leanSpeedMultiplier: 1
+    leanSpeedAdd: 0
+    leanAngleMultiplier: 1
+    leanAngleAdd: 0
