@@ -31,15 +31,24 @@ public class Weapon : MonoBehaviour
     {
         if (usesAmmo)
         {
+            if (ammoType == null)
+            {
+                Debug.LogError("Weapon is set to use ammo, but no ammo type is assigned.");
+                PlayDryFireSound();
+                return;
+            }
+
+            int ammoNeeded = Mathf.Max(1, ammoPerShot);
+
             // Check if the player has enough ammo
             if (playerInventoryHolder.InventorySystem.ContainsItem(ammoType, out List<InventorySlot> ammoSlots))
             {
-                int totalAmmo = ammoSlots.Sum(slot => slot.StackSize);
+                int totalAmmo = ammoSlots.Sum(slot => Mathf.Max(0, slot.StackSize));
 
-                if (totalAmmo >= ammoPerShot)
+                if (totalAmmo >= ammoNeeded)
                 {
                     // Deduct ammo and fire the weapon
-                    playerInventoryHolder.InventorySystem.RemoveItemsFromInventory(ammoType, ammoPerShot);
+                    playerInventoryHolder.InventorySystem.RemoveItemsFromInventory(ammoType, ammoNeeded);
                     FireWeapon(weaponBaseSo, hit);
                 }
                 else
